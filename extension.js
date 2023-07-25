@@ -1,6 +1,6 @@
 /*
     Hot Bottom - GNOME Shell 40+ extension
-    Copyright Francois Thirioux
+    Copyright Francois Thirioux 2022
     GitHub contributors: @fthx
     License GPL v3
 */
@@ -9,8 +9,8 @@ const { GLib, GObject, St } = imports.gi;
 
 const Main = imports.ui.main;
 
-var SHOW_BOX_HEIGHT = 2;
-var SHOW_BOX_HOVER_DELAY = 100;
+var SHOW_BOX_HEIGHT = 1;
+var SHOW_BOX_HOVER_DELAY = 200;
 
 
 var ShowBox = GObject.registerClass(
@@ -34,17 +34,15 @@ class Extension {
             return;
         }
 
-        this.show_box.set_size(Main.overview.dash._dashContainer.width, SHOW_BOX_HEIGHT);
-        this.show_box_x = this.work_area.x + Math.round((this.work_area.width - Main.overview.dash._dashContainer.width) / 2);
-        this.show_box_y = this.work_area.y + this.work_area.height - SHOW_BOX_HEIGHT;
-        this.show_box.set_position(this.show_box_x, this.show_box_y);
+        this.show_box.set_size(12, SHOW_BOX_HEIGHT);
+        this.show_box.set_position(this.work_area.x, this.work_area.y + this.work_area.height - SHOW_BOX_HEIGHT);
     }
 
     _on_show_box_hover() {
         if (Main.sessionMode.isLocked || Main.overview.animationInProgress) {
             return;
         }
-            
+
         this.show_box_hover_timeout = GLib.timeout_add(GLib.PRIORITY_DEFAULT, SHOW_BOX_HOVER_DELAY, () => {
             if (this.show_box.get_hover()) {
                 Main.overview.toggle();
@@ -59,7 +57,7 @@ class Extension {
         this._show_box_refresh();
 
         this.show_box.connect('notify::hover', this._on_show_box_hover.bind(this));
-        this.workareas_changed = global.display.connect_after('workareas-changed', this._show_box_refresh.bind(this));
+        this.workareas_changed = global.display.connect('workareas-changed', this._show_box_refresh.bind(this));
     }
 
     disable() {
@@ -67,12 +65,12 @@ class Extension {
             GLib.source_remove(this.show_box_hover_timeout);
             this.show_box_hover_timeout = 0;
         }
-        
+
         if (this.workareas_changed) {
             global.display.disconnect(this.workareas_changed);
             this.workareas_changed = null;
         }
-        
+
         Main.layoutManager.removeChrome(this.show_box);
         this.show_box.destroy();
         this.show_box = null;
